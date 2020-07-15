@@ -1,0 +1,523 @@
+<!doctype html>
+<html>
+<head>
+<meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>
+<title>程序分析那些事</title><link href='https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext' rel='stylesheet' type='text/css' /><style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color: #ffffff; --text-color: #333333; --select-text-bg-color: #B5D6FC; --select-text-font-color: auto; --monospace: "Lucida Console",Consolas,"Courier",monospace; }
+html { font-size: 14px; background-color: var(--bg-color); color: var(--text-color); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+body { margin: 0px; padding: 0px; height: auto; bottom: 0px; top: 0px; left: 0px; right: 0px; font-size: 1rem; line-height: 1.42857143; overflow-x: hidden; background-image: inherit; background-size: inherit; background-attachment: inherit; background-origin: inherit; background-clip: inherit; background-color: inherit; tab-size: 4; background-position: inherit inherit; background-repeat: inherit inherit; }
+iframe { margin: auto; }
+a.url { word-break: break-all; }
+a:active, a:hover { outline: 0px; }
+.in-text-selection, ::selection { text-shadow: none; background: var(--select-text-bg-color); color: var(--select-text-font-color); }
+#write { margin: 0px auto; height: auto; width: inherit; word-break: normal; word-wrap: break-word; position: relative; white-space: normal; overflow-x: visible; padding-top: 40px; }
+#write.first-line-indent p { text-indent: 2em; }
+#write.first-line-indent li p, #write.first-line-indent p * { text-indent: 0px; }
+#write.first-line-indent li { margin-left: 2em; }
+.for-image #write { padding-left: 8px; padding-right: 8px; }
+body.typora-export { padding-left: 30px; padding-right: 30px; }
+.typora-export .footnote-line, .typora-export li, .typora-export p { white-space: pre-wrap; }
+@media screen and (max-width: 500px) { 
+  body.typora-export { padding-left: 0px; padding-right: 0px; }
+  #write { padding-left: 20px; padding-right: 20px; }
+  .CodeMirror-sizer { margin-left: 0px !important; }
+  .CodeMirror-gutters { display: none !important; }
+}
+#write li > figure:last-child { margin-bottom: 0.5rem; }
+#write ol, #write ul { position: relative; }
+img { max-width: 100%; vertical-align: middle; image-orientation: from-image; }
+button, input, select, textarea { color: inherit; font-family: inherit; font-size: inherit; font-style: inherit; font-variant-caps: inherit; font-weight: inherit; font-stretch: inherit; line-height: inherit; }
+input[type="checkbox"], input[type="radio"] { line-height: normal; padding: 0px; }
+*, ::after, ::before { box-sizing: border-box; }
+#write h1, #write h2, #write h3, #write h4, #write h5, #write h6, #write p, #write pre { width: inherit; }
+#write h1, #write h2, #write h3, #write h4, #write h5, #write h6, #write p { position: relative; }
+p { line-height: inherit; }
+h1, h2, h3, h4, h5, h6 { break-after: avoid-page; break-inside: avoid; orphans: 4; }
+p { orphans: 4; }
+h1 { font-size: 2rem; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.6rem; }
+h4 { font-size: 1.4rem; }
+h5 { font-size: 1.2rem; }
+h6 { font-size: 1rem; }
+.md-math-block, .md-rawblock, h1, h2, h3, h4, h5, h6, p { margin-top: 1rem; margin-bottom: 1rem; }
+.hidden { display: none; }
+.md-blockmeta { color: rgb(204, 204, 204); font-weight: 700; font-style: italic; }
+a { cursor: pointer; }
+sup.md-footnote { padding: 2px 4px; background-color: rgba(238, 238, 238, 0.7); color: rgb(85, 85, 85); border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; cursor: pointer; }
+sup.md-footnote a, sup.md-footnote a:hover { color: inherit; text-transform: inherit; text-decoration: inherit; }
+#write input[type="checkbox"] { cursor: pointer; width: inherit; height: inherit; }
+figure { overflow-x: auto; margin: 1.2em 0px; max-width: calc(100% + 16px); padding: 0px; }
+figure > table { margin: 0px !important; }
+tr { break-inside: avoid; break-after: auto; }
+thead { display: table-header-group; }
+table { border-collapse: collapse; border-spacing: 0px; width: 100%; overflow: auto; break-inside: auto; text-align: left; }
+table.md-table td { min-width: 32px; }
+.CodeMirror-gutters { border-right-width: 0px; background-color: inherit; }
+.CodeMirror-linenumber { }
+.CodeMirror { text-align: left; }
+.CodeMirror-placeholder { opacity: 0.3; }
+.CodeMirror pre { padding: 0px 4px; }
+.CodeMirror-lines { padding: 0px; }
+div.hr:focus { cursor: none; }
+#write pre { white-space: pre-wrap; }
+#write.fences-no-line-wrapping pre { white-space: pre; }
+#write pre.ty-contain-cm { white-space: normal; }
+.CodeMirror-gutters { margin-right: 4px; }
+.md-fences { font-size: 0.9rem; display: block; break-inside: avoid; text-align: left; overflow: visible; white-space: pre; background-image: inherit; background-size: inherit; background-attachment: inherit; background-origin: inherit; background-clip: inherit; background-color: inherit; position: relative !important; background-position: inherit inherit; background-repeat: inherit inherit; }
+.md-diagram-panel { width: 100%; margin-top: 10px; text-align: center; padding-top: 0px; padding-bottom: 8px; overflow-x: auto; }
+#write .md-fences.mock-cm { white-space: pre-wrap; }
+.md-fences.md-fences-with-lineno { padding-left: 0px; }
+#write.fences-no-line-wrapping .md-fences.mock-cm { white-space: pre; overflow-x: auto; }
+.md-fences.mock-cm.md-fences-with-lineno { padding-left: 8px; }
+.CodeMirror-line, twitterwidget { break-inside: avoid; }
+.footnotes { opacity: 0.8; font-size: 0.9rem; margin-top: 1em; margin-bottom: 1em; }
+.footnotes + .footnotes { margin-top: 0px; }
+.md-reset { margin: 0px; padding: 0px; border: 0px; outline: 0px; vertical-align: top; text-decoration: none; text-shadow: none; float: none; position: static; width: auto; height: auto; white-space: nowrap; cursor: inherit; line-height: normal; font-weight: 400; text-align: left; box-sizing: content-box; direction: ltr; background-position: 0px 0px; background-repeat: initial initial; }
+li div { padding-top: 0px; }
+blockquote { margin: 1rem 0px; }
+li .mathjax-block, li p { margin: 0.5rem 0px; }
+li { margin: 0px; position: relative; }
+blockquote > :last-child { margin-bottom: 0px; }
+blockquote > :first-child, li > :first-child { margin-top: 0px; }
+.footnotes-area { color: rgb(136, 136, 136); margin-top: 0.714rem; padding-bottom: 0.143rem; white-space: normal; }
+#write .footnote-line { white-space: pre-wrap; }
+@media print { 
+  body, html { border: 1px solid transparent; height: 99%; break-after: avoid; break-before: avoid; font-variant-ligatures: no-common-ligatures; }
+  #write { margin-top: 0px; padding-top: 0px; border-color: transparent !important; }
+  .typora-export * { -webkit-print-color-adjust: exact; }
+  html.blink-to-pdf { font-size: 13px; }
+  .typora-export #write { padding-left: 32px; padding-right: 32px; padding-bottom: 0px; break-after: avoid; }
+  .typora-export #write::after { height: 0px; }
+}
+.footnote-line { margin-top: 0.714em; font-size: 0.7em; }
+a img, img a { cursor: pointer; }
+pre.md-meta-block { font-size: 0.8rem; min-height: 0.8rem; white-space: pre-wrap; background-color: rgb(204, 204, 204); display: block; overflow-x: hidden; background-position: initial initial; background-repeat: initial initial; }
+p > .md-image:only-child:not(.md-img-error) img, p > img:only-child { display: block; margin: auto; }
+#write.first-line-indent p > .md-image:only-child:not(.md-img-error) img { left: -2em; position: relative; }
+p > .md-image:only-child { display: inline-block; width: 100%; }
+#write .MathJax_Display { margin: 0.8em 0px 0px; }
+.md-math-block { width: 100%; }
+.md-math-block:not(:empty)::after { display: none; }
+[contenteditable="true"]:active, [contenteditable="true"]:focus, [contenteditable="false"]:active, [contenteditable="false"]:focus { outline: 0px; box-shadow: none; }
+.md-task-list-item { position: relative; list-style-type: none; }
+.task-list-item.md-task-list-item { padding-left: 0px; }
+.md-task-list-item > input { position: absolute; top: 0px; left: 0px; margin-left: -1.2em; margin-top: calc(1em - 10px); border: none; }
+.math { font-size: 1rem; }
+.md-toc { min-height: 3.58rem; position: relative; font-size: 0.9rem; border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px; }
+.md-toc-content { position: relative; margin-left: 0px; }
+.md-toc-content::after, .md-toc::after { display: none; }
+.md-toc-item { display: block; color: rgb(65, 131, 196); }
+.md-toc-item a { text-decoration: none; }
+.md-toc-inner:hover { text-decoration: underline; }
+.md-toc-inner { display: inline-block; cursor: pointer; }
+.md-toc-h1 .md-toc-inner { margin-left: 0px; font-weight: 700; }
+.md-toc-h2 .md-toc-inner { margin-left: 2em; }
+.md-toc-h3 .md-toc-inner { margin-left: 4em; }
+.md-toc-h4 .md-toc-inner { margin-left: 6em; }
+.md-toc-h5 .md-toc-inner { margin-left: 8em; }
+.md-toc-h6 .md-toc-inner { margin-left: 10em; }
+@media screen and (max-width: 48em) { 
+  .md-toc-h3 .md-toc-inner { margin-left: 3.5em; }
+  .md-toc-h4 .md-toc-inner { margin-left: 5em; }
+  .md-toc-h5 .md-toc-inner { margin-left: 6.5em; }
+  .md-toc-h6 .md-toc-inner { margin-left: 8em; }
+}
+a.md-toc-inner { font-size: inherit; font-style: inherit; font-weight: inherit; line-height: inherit; }
+.footnote-line a:not(.reversefootnote) { color: inherit; }
+.md-attr { display: none; }
+.md-fn-count::after { content: "."; }
+code, pre, samp, tt { font-family: var(--monospace); }
+kbd { margin: 0px 0.1em; padding: 0.1em 0.6em; font-size: 0.8em; color: rgb(36, 39, 41); background-color: rgb(255, 255, 255); border: 1px solid rgb(173, 179, 185); border-top-left-radius: 3px; border-top-right-radius: 3px; border-bottom-right-radius: 3px; border-bottom-left-radius: 3px; box-shadow: rgba(12, 13, 14, 0.2) 0px 1px 0px, rgb(255, 255, 255) 0px 0px 0px 2px inset; white-space: nowrap; vertical-align: middle; background-position: initial initial; background-repeat: initial initial; }
+.md-comment { color: rgb(162, 127, 3); opacity: 0.8; font-family: var(--monospace); }
+code { text-align: left; }
+a.md-print-anchor { white-space: pre !important; border: none !important; display: inline-block !important; position: absolute !important; width: 1px !important; right: 0px !important; outline: 0px !important; text-shadow: initial !important; background-position: 0px 0px !important; background-repeat: initial initial !important; }
+.md-inline-math .MathJax_SVG .noError { display: none !important; }
+.html-for-mac .inline-math-svg .MathJax_SVG { vertical-align: 0.2px; }
+.md-math-block .MathJax_SVG_Display { text-align: center; margin: 0px; position: relative; text-indent: 0px; max-width: none; max-height: none; min-height: 0px; min-width: 100%; width: auto; overflow-y: hidden; display: block !important; }
+.MathJax_SVG_Display, .md-inline-math .MathJax_SVG_Display { width: auto; margin: inherit; display: inline-block !important; }
+.MathJax_SVG .MJX-monospace { font-family: var(--monospace); }
+.MathJax_SVG .MJX-sans-serif { font-family: sans-serif; }
+.MathJax_SVG { display: inline; font-style: normal; font-weight: 400; line-height: normal; zoom: 90%; text-indent: 0px; text-align: left; text-transform: none; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; direction: ltr; max-width: none; max-height: none; min-width: 0px; min-height: 0px; border: 0px; padding: 0px; margin: 0px; }
+.MathJax_SVG * { transition: none; }
+.MathJax_SVG_Display svg { vertical-align: middle !important; margin-bottom: 0px !important; margin-top: 0px !important; }
+.os-windows.monocolor-emoji .md-emoji { font-family: "Segoe UI Symbol", sans-serif; }
+.md-diagram-panel > svg { max-width: 100%; }
+[lang="flow"] svg, [lang="mermaid"] svg { max-width: 100%; height: auto; }
+[lang="mermaid"] .node text { font-size: 1rem; }
+table tr th { border-bottom-width: 0px; }
+video { max-width: 100%; display: block; margin: 0px auto; }
+iframe { max-width: 100%; width: 100%; border: none; }
+.highlight td, .highlight tr { border: 0px; }
+svg[id^="mermaidChart"] { line-height: 1em; }
+mark { background-color: rgb(255, 255, 0); color: rgb(0, 0, 0); background-position: initial initial; background-repeat: initial initial; }
+.md-html-inline .md-plain, .md-html-inline strong, mark .md-inline-math, mark strong { color: inherit; }
+mark .md-meta { color: rgb(0, 0, 0); opacity: 0.3 !important; }
+
+
+:root {
+    --side-bar-bg-color: #fafafa;
+    --control-text-color: #777;
+}
+
+@include-when-export url(https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext);
+
+html {
+    font-size: 16px;
+}
+
+body {
+    font-family: "Open Sans","Clear Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+    color: rgb(51, 51, 51);
+    line-height: 1.6;
+}
+
+#write {
+    max-width: 860px;
+  	margin: 0 auto;
+  	padding: 30px;
+    padding-bottom: 100px;
+}
+
+@media only screen and (min-width: 1400px) {
+	#write {
+		max-width: 1024px;
+	}
+}
+
+@media only screen and (min-width: 1800px) {
+	#write {
+		max-width: 1200px;
+	}
+}
+
+#write > ul:first-child,
+#write > ol:first-child{
+    margin-top: 30px;
+}
+
+a {
+    color: #4183C4;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    position: relative;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    line-height: 1.4;
+    cursor: text;
+}
+h1:hover a.anchor,
+h2:hover a.anchor,
+h3:hover a.anchor,
+h4:hover a.anchor,
+h5:hover a.anchor,
+h6:hover a.anchor {
+    text-decoration: none;
+}
+h1 tt,
+h1 code {
+    font-size: inherit;
+}
+h2 tt,
+h2 code {
+    font-size: inherit;
+}
+h3 tt,
+h3 code {
+    font-size: inherit;
+}
+h4 tt,
+h4 code {
+    font-size: inherit;
+}
+h5 tt,
+h5 code {
+    font-size: inherit;
+}
+h6 tt,
+h6 code {
+    font-size: inherit;
+}
+h1 {
+    padding-bottom: .3em;
+    font-size: 2.25em;
+    line-height: 1.2;
+    border-bottom: 1px solid #eee;
+}
+h2 {
+   padding-bottom: .3em;
+    font-size: 1.75em;
+    line-height: 1.225;
+    border-bottom: 1px solid #eee;
+}
+h3 {
+    font-size: 1.5em;
+    line-height: 1.43;
+}
+h4 {
+    font-size: 1.25em;
+}
+h5 {
+    font-size: 1em;
+}
+h6 {
+   font-size: 1em;
+    color: #777;
+}
+p,
+blockquote,
+ul,
+ol,
+dl,
+table{
+    margin: 0.8em 0;
+}
+li>ol,
+li>ul {
+    margin: 0 0;
+}
+hr {
+    height: 2px;
+    padding: 0;
+    margin: 16px 0;
+    background-color: #e7e7e7;
+    border: 0 none;
+    overflow: hidden;
+    box-sizing: content-box;
+}
+
+li p.first {
+    display: inline-block;
+}
+ul,
+ol {
+    padding-left: 30px;
+}
+ul:first-child,
+ol:first-child {
+    margin-top: 0;
+}
+ul:last-child,
+ol:last-child {
+    margin-bottom: 0;
+}
+blockquote {
+    border-left: 4px solid #dfe2e5;
+    padding: 0 15px;
+    color: #777777;
+}
+blockquote blockquote {
+    padding-right: 0;
+}
+table {
+    padding: 0;
+    word-break: initial;
+}
+table tr {
+    border-top: 1px solid #dfe2e5;
+    margin: 0;
+    padding: 0;
+}
+table tr:nth-child(2n),
+thead {
+    background-color: #f8f8f8;
+}
+table tr th {
+    font-weight: bold;
+    border: 1px solid #dfe2e5;
+    border-bottom: 0;
+    margin: 0;
+    padding: 6px 13px;
+}
+table tr td {
+    border: 1px solid #dfe2e5;
+    margin: 0;
+    padding: 6px 13px;
+}
+table tr th:first-child,
+table tr td:first-child {
+    margin-top: 0;
+}
+table tr th:last-child,
+table tr td:last-child {
+    margin-bottom: 0;
+}
+
+.CodeMirror-lines {
+    padding-left: 4px;
+}
+
+.code-tooltip {
+    box-shadow: 0 1px 1px 0 rgba(0,28,36,.3);
+    border-top: 1px solid #eef2f2;
+}
+
+.md-fences,
+code,
+tt {
+    border: 1px solid #e7eaed;
+    background-color: #f8f8f8;
+    border-radius: 3px;
+    padding: 0;
+    padding: 2px 4px 0px 4px;
+    font-size: 0.9em;
+}
+
+code {
+    background-color: #f3f4f4;
+    padding: 0 2px 0 2px;
+}
+
+.md-fences {
+    margin-bottom: 15px;
+    margin-top: 15px;
+    padding-top: 8px;
+    padding-bottom: 6px;
+}
+
+
+.md-task-list-item > input {
+  margin-left: -1.3em;
+}
+
+@media print {
+    html {
+        font-size: 13px;
+    }
+    table,
+    pre {
+        page-break-inside: avoid;
+    }
+    pre {
+        word-wrap: break-word;
+    }
+}
+
+.md-fences {
+	background-color: #f8f8f8;
+}
+#write pre.md-meta-block {
+	padding: 1rem;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f7f7f7;
+    border: 0;
+    border-radius: 3px;
+    color: #777777;
+    margin-top: 0 !important;
+}
+
+.mathjax-block>.code-tooltip {
+	bottom: .375rem;
+}
+
+.md-mathjax-midline {
+    background: #fafafa;
+}
+
+#write>h3.md-focus:before{
+	left: -1.5625rem;
+	top: .375rem;
+}
+#write>h4.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+#write>h5.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+#write>h6.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+.md-image>.md-meta {
+    /*border: 1px solid #ddd;*/
+    border-radius: 3px;
+    padding: 2px 0px 0px 4px;
+    font-size: 0.9em;
+    color: inherit;
+}
+
+.md-tag {
+    color: #a7a7a7;
+    opacity: 1;
+}
+
+.md-toc { 
+    margin-top:20px;
+    padding-bottom:20px;
+}
+
+.sidebar-tabs {
+    border-bottom: none;
+}
+
+#typora-quick-open {
+    border: 1px solid #ddd;
+    background-color: #f8f8f8;
+}
+
+#typora-quick-open-item {
+    background-color: #FAFAFA;
+    border-color: #FEFEFE #e5e5e5 #e5e5e5 #eee;
+    border-style: solid;
+    border-width: 1px;
+}
+
+/** focus mode */
+.on-focus-mode blockquote {
+    border-left-color: rgba(85, 85, 85, 0.12);
+}
+
+header, .context-menu, .megamenu-content, footer{
+    font-family: "Segoe UI", "Arial", sans-serif;
+}
+
+.file-node-content:hover .file-node-icon,
+.file-node-content:hover .file-node-open-state{
+    visibility: visible;
+}
+
+.mac-seamless-mode #typora-sidebar {
+    background-color: #fafafa;
+    background-color: var(--side-bar-bg-color);
+}
+
+.md-lang {
+    color: #b4654d;
+}
+
+.html-for-mac .context-menu {
+    --item-hover-bg-color: #E6F0FE;
+}
+
+#md-notification .btn {
+    border: 0;
+}
+
+.dropdown-menu .divider {
+    border-color: #e5e5e5;
+}
+
+.ty-preferences .window-content {
+    background-color: #fafafa;
+}
+
+.ty-preferences .nav-group-item.active {
+    color: white;
+    background: #999;
+}
+
+ .typora-export li, .typora-export p, .typora-export,  .footnote-line {white-space: normal;} 
+</style>
+</head>
+<body class='typora-export' >
+<div  id='write'  class = 'is-mac'><h2><a name="程序分析那些事" class="md-header-anchor"></a><span>程序分析那些事</span></h2><p><span>笔者从事程序分析多年，熟悉一些程序分析的开源工具和程序的基本理论，对这些做一个基本的总结。</span></p><p>&nbsp;</p><h3><a name="1-概述" class="md-header-anchor"></a><span>1. 概述</span></h3><p><span>编译器是一个将高级语言编写的程序转化成能在一台计算机上执行的等价目标代码，在狭义的定义下，主要分为以下几个阶段：</span></p><p>&nbsp;</p><p><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIHdpZHRoPSI5NDJweCIgaGVpZ2h0PSI4M3B4IiB2aWV3Qm94PSItMC41IC0wLjUgOTQyIDgzIj48ZGVmcy8+PGc+PHJlY3QgeD0iODciIHk9IjAuNTkiIHdpZHRoPSIxNDgiIGhlaWdodD0iNjAiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iIzAwNmVhZiIgcG9pbnRlci1ldmVudHM9ImFsbCIvPjxwYXRoIGQ9Ik0gMTAyIDAuNTkgTCAxMDIgNjAuNTkgTSAyMjAgMC41OSBMIDIyMCA2MC41OSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDA2ZWFmIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHBvaW50ZXItZXZlbnRzPSJhbGwiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMC41IC0wLjUpIj48c3dpdGNoPjxmb3JlaWduT2JqZWN0IHN0eWxlPSJvdmVyZmxvdzogdmlzaWJsZTsgdGV4dC1hbGlnbjogbGVmdDsiIHBvaW50ZXItZXZlbnRzPSJub25lIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiByZXF1aXJlZEZlYXR1cmVzPSJodHRwOi8vd3d3LnczLm9yZy9UUi9TVkcxMS9mZWF0dXJlI0V4dGVuc2liaWxpdHkiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIHN0eWxlPSJkaXNwbGF5OiBmbGV4OyBhbGlnbi1pdGVtczogdW5zYWZlIGNlbnRlcjsganVzdGlmeS1jb250ZW50OiB1bnNhZmUgY2VudGVyOyB3aWR0aDogMTE2cHg7IGhlaWdodDogMXB4OyBwYWRkaW5nLXRvcDogMzFweDsgbWFyZ2luLWxlZnQ6IDEwM3B4OyI+PGRpdiBzdHlsZT0iYm94LXNpemluZzogYm9yZGVyLWJveDsgZm9udC1zaXplOiAwOyB0ZXh0LWFsaWduOiBjZW50ZXI7ICI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyBmb250LXNpemU6IDEycHg7IGZvbnQtZmFtaWx5OiBIZWx2ZXRpY2E7IGNvbG9yOiAjZmZmZmZmOyBsaW5lLWhlaWdodDogMS4yOyBwb2ludGVyLWV2ZW50czogYWxsOyB3aGl0ZS1zcGFjZTogbm9ybWFsOyB3b3JkLXdyYXA6IG5vcm1hbDsgIj48Zm9udCBjb2xvcj0iIzAwMDAwMCI+TGV4aWNhbCBBbmFseXNpczwvZm9udD48L2Rpdj48L2Rpdj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PHRleHQgeD0iMTYxIiB5PSIzNCIgZmlsbD0iI2ZmZmZmZiIgZm9udC1mYW1pbHk9IkhlbHZldGljYSIgZm9udC1zaXplPSIxMnB4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5MZXhpY2FsIEFuYWx5c2lzPC90ZXh0Pjwvc3dpdGNoPjwvZz48cmVjdCB4PSI3IiB5PSI0LjE4IiB3aWR0aD0iNDcuNSIgaGVpZ2h0PSI1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJub25lIiBwb2ludGVyLWV2ZW50cz0iYWxsIi8+PHBhdGggZD0iTSA3LjEgMTAuODkgQyA3IDcuNDcgOS41MSA0LjU1IDEyLjg2IDQuMTggTCA0NC43MyA0LjE4IEwgNTQuNSAxNC4yNCBMIDU0LjUgNDguMzEgQyA1NC4xNiA1MS40MSA1MS43MiA1My44NCA0OC42NyA1NC4xMiBMIDEyLjk4IDU0LjE4IEMgOS43NSA1My45MyA3LjIgNTEuMjkgNy4wMiA0OCBaIE0gMTEuMDIgNDcuNzQgQyAxMS4wNyA0OS4wNCAxMi4wOCA1MC4wOSAxMy4zNiA1MC4xNyBMIDQ4LjExIDUwLjE3IEMgNDkuNCA1MC4xMiA1MC40NCA0OS4wNiA1MC40OSA0Ny43NCBMIDUwLjQ5IDE2LjM1IEwgNDIuNTUgMTYuMzUgTCA0Mi41NSA4LjE3IEwgMTMuMzYgOC4xNyBDIDEyLjA4IDguMjIgMTEuMDUgOS4yNCAxMC45NyAxMC41NCBaIE0gMTkuMDYgMjcuOCBDIDIwLjQgMjcuNjcgMjEuMzkgMjYuNDkgMjEuMyAyNS4xMyBMIDIxLjMgMjAuMjMgQyAyMS40NSAxOC4yMyAyMi44OSAxNi41NiAyNC44MiAxNi4xNCBDIDI1LjY4IDE2IDI2LjU0IDE1LjkzIDI3LjQxIDE1Ljk0IEwgMjcuNDEgMTguNjcgQyAyNi4xMyAxOC42OSAyNS4wOCAxOS42OSAyNC45NyAyMC45OSBMIDI0Ljk3IDI1LjUzIEMgMjQuOTQgMjcuMTMgMjMuOTkgMjguNTUgMjIuNTQgMjkuMTcgQyAyMy44NiAyOS43MiAyNC43OSAzMC45NSAyNC45NyAzMi40IEwgMjQuOTcgMzcuOSBDIDI1LjMyIDM4Ljk2IDI2LjMxIDM5LjY1IDI3LjQxIDM5LjYyIEwgMjcuNDEgNDIuMzkgQyAyNi42OCA0Mi40IDI1Ljk1IDQyLjM1IDI1LjIyIDQyLjI0IEMgMjMuMzIgNDIgMjEuNzkgNDAuNTYgMjEuNCAzOC42NiBMIDIxLjM1IDMyLjkgQyAyMS4zIDMxLjYyIDIwLjMyIDMwLjU4IDE5LjA2IDMwLjQ4IFogTSAzMi41MiAxNS45NCBDIDMzLjUyIDE1LjkyIDM0LjUyIDE2LjAxIDM1LjUgMTYuMTkgQyAzNy4zNiAxNi44MSAzOC42MSAxOC41OSAzOC41OCAyMC41OSBMIDM4LjU4IDI1LjMzIEMgMzguNiAyNi42MSAzOS41NiAyNy42OCA0MC44MSAyNy44IEwgNDAuODEgMzAuNDMgQyAzOS41MiAzMC41NiAzOC41NCAzMS42OCAzOC41OCAzMyBMIDM4LjU4IDM3LjkgQyAzOC41MyAzOS43NiAzNy4zNyA0MS40IDM1LjY1IDQyLjA0IEMgMzQuNjIgNDIuMjkgMzMuNTcgNDIuNDIgMzIuNTIgNDIuNDQgTCAzMi41MiAzOS42NyBDIDMzLjUxIDM5LjY3IDM0LjQxIDM5LjA4IDM0LjggMzguMTUgTCAzNC45NSAzMi43IEMgMzQuOTggMzEuMjIgMzUuOCAyOS44OCAzNy4wOSAyOS4xOSBDIDM1Ljc2IDI4LjU0IDM0LjkgMjcuMTkgMzQuODUgMjUuNjggTCAzNC44NSAyMC4zMyBDIDM0LjUgMTkuMzEgMzMuNTQgMTguNjQgMzIuNDcgMTguNjYgWiIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjNjY2NjY2IiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHBvaW50ZXItZXZlbnRzPSJhbGwiLz48cmVjdCB4PSIyNzgiIHk9IjAuMTgiIHdpZHRoPSIxNDMiIGhlaWdodD0iNjAiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iIzAwNmVhZiIgcG9pbnRlci1ldmVudHM9ImFsbCIvPjxwYXRoIGQ9Ik0gMjkyIDAuMTggTCAyOTIgNjAuMTggTSA0MDcgMC4xOCBMIDQwNyA2MC4xOCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDA2ZWFmIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHBvaW50ZXItZXZlbnRzPSJhbGwiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMC41IC0wLjUpIj48c3dpdGNoPjxmb3JlaWduT2JqZWN0IHN0eWxlPSJvdmVyZmxvdzogdmlzaWJsZTsgdGV4dC1hbGlnbjogbGVmdDsiIHBvaW50ZXItZXZlbnRzPSJub25lIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiByZXF1aXJlZEZlYXR1cmVzPSJodHRwOi8vd3d3LnczLm9yZy9UUi9TVkcxMS9mZWF0dXJlI0V4dGVuc2liaWxpdHkiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIHN0eWxlPSJkaXNwbGF5OiBmbGV4OyBhbGlnbi1pdGVtczogdW5zYWZlIGNlbnRlcjsganVzdGlmeS1jb250ZW50OiB1bnNhZmUgY2VudGVyOyB3aWR0aDogMTEycHg7IGhlaWdodDogMXB4OyBwYWRkaW5nLXRvcDogMzBweDsgbWFyZ2luLWxlZnQ6IDI5M3B4OyI+PGRpdiBzdHlsZT0iYm94LXNpemluZzogYm9yZGVyLWJveDsgZm9udC1zaXplOiAwOyB0ZXh0LWFsaWduOiBjZW50ZXI7ICI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyBmb250LXNpemU6IDEycHg7IGZvbnQtZmFtaWx5OiBIZWx2ZXRpY2E7IGNvbG9yOiAjMDAwMDAwOyBsaW5lLWhlaWdodDogMS4yOyBwb2ludGVyLWV2ZW50czogYWxsOyB3aGl0ZS1zcGFjZTogbm9ybWFsOyB3b3JkLXdyYXA6IG5vcm1hbDsgIj48c3BhbiBzdHlsZT0iY29sb3I6IHJnYigwICwgMCAsIDApIj5TeW50YXggQW5hbHlzaXM8L3NwYW4+PC9kaXY+PC9kaXY+PC9kaXY+PC9mb3JlaWduT2JqZWN0Pjx0ZXh0IHg9IjM0OSIgeT0iMzQiIGZpbGw9IiMwMDAwMDAiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EiIGZvbnQtc2l6ZT0iMTJweCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U3ludGF4IEFuYWx5c2lzPC90ZXh0Pjwvc3dpdGNoPjwvZz48cmVjdCB4PSI0NzQiIHk9IjAuMTgiIHdpZHRoPSIxNTYiIGhlaWdodD0iNjAiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iIzAwNmVhZiIgcG9pbnRlci1ldmVudHM9ImFsbCIvPjxwYXRoIGQ9Ik0gNDkwIDAuMTggTCA0OTAgNjAuMTggTSA2MTQgMC4xOCBMIDYxNCA2MC4xOCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDA2ZWFmIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHBvaW50ZXItZXZlbnRzPSJhbGwiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMC41IC0wLjUpIj48c3dpdGNoPjxmb3JlaWduT2JqZWN0IHN0eWxlPSJvdmVyZmxvdzogdmlzaWJsZTsgdGV4dC1hbGlnbjogbGVmdDsiIHBvaW50ZXItZXZlbnRzPSJub25lIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiByZXF1aXJlZEZlYXR1cmVzPSJodHRwOi8vd3d3LnczLm9yZy9UUi9TVkcxMS9mZWF0dXJlI0V4dGVuc2liaWxpdHkiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIHN0eWxlPSJkaXNwbGF5OiBmbGV4OyBhbGlnbi1pdGVtczogdW5zYWZlIGNlbnRlcjsganVzdGlmeS1jb250ZW50OiB1bnNhZmUgY2VudGVyOyB3aWR0aDogMTIzcHg7IGhlaWdodDogMXB4OyBwYWRkaW5nLXRvcDogMzBweDsgbWFyZ2luLWxlZnQ6IDQ5MXB4OyI+PGRpdiBzdHlsZT0iYm94LXNpemluZzogYm9yZGVyLWJveDsgZm9udC1zaXplOiAwOyB0ZXh0LWFsaWduOiBjZW50ZXI7ICI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyBmb250LXNpemU6IDEycHg7IGZvbnQtZmFtaWx5OiBIZWx2ZXRpY2E7IGNvbG9yOiAjMDAwMDAwOyBsaW5lLWhlaWdodDogMS4yOyBwb2ludGVyLWV2ZW50czogYWxsOyB3aGl0ZS1zcGFjZTogbm9ybWFsOyB3b3JkLXdyYXA6IG5vcm1hbDsgIj48c3BhbiBzdHlsZT0iY29sb3I6IHJnYigwICwgMCAsIDApIj7CoFNlbWFudGljIEFuYWx5c2lzPC9zcGFuPjwvZGl2PjwvZGl2PjwvZGl2PjwvZm9yZWlnbk9iamVjdD48dGV4dCB4PSI1NTMiIHk9IjM0IiBmaWxsPSIjMDAwMDAwIiBmb250LWZhbWlseT0iSGVsdmV0aWNhIiBmb250LXNpemU9IjEycHgiIHRleHQtYW5jaG9yPSJtaWRkbGUiPsKgU2VtYW50aWMgQW5hbHlzaXM8L3RleHQ+PC9zd2l0Y2g+PC9nPjxwYXRoIGQ9Ik0gNTQuNSAyOS4xOCBMIDgyLjYzIDI5LjAzIiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDZlYWYiIHN0cm9rZS1taXRlcmxpbWl0PSIxMCIgcG9pbnRlci1ldmVudHM9InN0cm9rZSIvPjxwYXRoIGQ9Ik0gODcuODggMjkuMDEgTCA4MC45IDMyLjU0IEwgODIuNjMgMjkuMDMgTCA4MC44NiAyNS41NCBaIiBmaWxsPSIjMDA2ZWFmIiBzdHJva2U9IiMwMDZlYWYiIHN0cm9rZS1taXRlcmxpbWl0PSIxMCIgcG9pbnRlci1ldmVudHM9ImFsbCIvPjxwYXRoIGQ9Ik0gMjM1IDMwLjU5IEwgMjcxLjYzIDMwLjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDZlYWYiIHN0cm9rZS1taXRlcmxpbWl0PSIxMCIgcG9pbnRlci1ldmVudHM9InN0cm9rZSIvPjxwYXRoIGQ9Ik0gMjc2Ljg4IDMwLjE5IEwgMjY5LjkyIDMzLjc2IEwgMjcxLjYzIDMwLjI0IEwgMjY5Ljg1IDI2Ljc2IFoiIGZpbGw9IiMwMDZlYWYiIHN0cm9rZT0iIzAwNmVhZiIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBwb2ludGVyLWV2ZW50cz0iYWxsIi8+PHBhdGggZD0iTSA0MjEgMzAuMTggTCA0NjcuNjMgMzAuMTgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwNmVhZiIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBwb2ludGVyLWV2ZW50cz0ic3Ryb2tlIi8+PHBhdGggZD0iTSA0NzIuODggMzAuMTggTCA0NjUuODggMzMuNjggTCA0NjcuNjMgMzAuMTggTCA0NjUuODggMjYuNjggWiIgZmlsbD0iIzAwNmVhZiIgc3Ryb2tlPSIjMDA2ZWFmIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHBvaW50ZXItZXZlbnRzPSJhbGwiLz48cmVjdCB4PSIwIiB5PSI2MS4xOCIgd2lkdGg9IjY4IiBoZWlnaHQ9IjIwIiBmaWxsPSJub25lIiBzdHJva2U9Im5vbmUiIHBvaW50ZXItZXZlbnRzPSJhbGwiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMC41IC0wLjUpIj48c3dpdGNoPjxmb3JlaWduT2JqZWN0IHN0eWxlPSJvdmVyZmxvdzogdmlzaWJsZTsgdGV4dC1hbGlnbjogbGVmdDsiIHBvaW50ZXItZXZlbnRzPSJub25lIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiByZXF1aXJlZEZlYXR1cmVzPSJodHRwOi8vd3d3LnczLm9yZy9UUi9TVkcxMS9mZWF0dXJlI0V4dGVuc2liaWxpdHkiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIHN0eWxlPSJkaXNwbGF5OiBmbGV4OyBhbGlnbi1pdGVtczogdW5zYWZlIGNlbnRlcjsganVzdGlmeS1jb250ZW50OiB1bnNhZmUgY2VudGVyOyB3aWR0aDogNjZweDsgaGVpZ2h0OiAxcHg7IHBhZGRpbmctdG9wOiA3MXB4OyBtYXJnaW4tbGVmdDogMXB4OyI+PGRpdiBzdHlsZT0iYm94LXNpemluZzogYm9yZGVyLWJveDsgZm9udC1zaXplOiAwOyB0ZXh0LWFsaWduOiBjZW50ZXI7ICI+PGRpdiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyBmb250LXNpemU6IDEycHg7IGZvbnQtZmFtaWx5OiBIZWx2ZXRpY2E7IGNvbG9yOiAjMDAwMDAwOyBsaW5lLWhlaWdodDogMS4yOyBwb2ludGVyLWV2ZW50czogYWxsOyB3aGl0ZS1zcGFjZTogbm9ybWFsOyB3b3JkLXdyYXA6IG5vcm1hbDsgIj48Zm9udCBjb2xvcj0iIzAwMDAwMCI+U291cmNlIEZpbGU8YnIgLz48L2ZvbnQ+PC9kaXY+PC9kaXY+PC9kaXY+PC9mb3JlaWduT2JqZWN0Pjx0ZXh0IHg9IjM0IiB5PSI3NSIgZmlsbD0iIzAwMDAwMCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSIgZm9udC1zaXplPSIxMnB4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Tb3VyY2UgRmlsZSYjeGE7PC90ZXh0Pjwvc3dpdGNoPjwvZz48cmVjdCB4PSI4NzMiIHk9IjU5LjE4IiB3aWR0aD0iNjcuMjUiIGhlaWdodD0iMjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0ibm9uZSIgcG9pbnRlci1ldmVudHM9ImFsbCIvPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0wLjUgLTAuNSkiPjxzd2l0Y2g+PGZvcmVpZ25PYmplY3Qgc3R5bGU9Im92ZXJmbG93OiB2aXNpYmxlOyB0ZXh0LWFsaWduOiBsZWZ0OyIgcG9pbnRlci1ldmVudHM9Im5vbmUiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHJlcXVpcmVkRmVhdHVyZXM9Imh0dHA6Ly93d3cudzMub3JnL1RSL1NWRzExL2ZlYXR1cmUjRXh0ZW5zaWJpbGl0eSI+PGRpdiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgc3R5bGU9ImRpc3BsYXk6IGZsZXg7IGFsaWduLWl0ZW1zOiB1bnNhZmUgY2VudGVyOyBqdXN0aWZ5LWNvbnRlbnQ6IHVuc2FmZSBjZW50ZXI7IHdpZHRoOiA2NXB4OyBoZWlnaHQ6IDFweDsgcGFkZGluZy10b3A6IDY5cHg7IG1hcmdpbi1sZWZ0OiA4NzRweDsiPjxkaXYgc3R5bGU9ImJveC1zaXppbmc6IGJvcmRlci1ib3g7IGZvbnQtc2l6ZTogMDsgdGV4dC1hbGlnbjogY2VudGVyOyAiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgZm9udC1zaXplOiAxMnB4OyBmb250LWZhbWlseTogSGVsdmV0aWNhOyBjb2xvcjogIzAwMDAwMDsgbGluZS1oZWlnaHQ6IDEuMjsgcG9pbnRlci1ldmVudHM6IGFsbDsgd2hpdGUtc3BhY2U6IG5vcm1hbDsgd29yZC13cmFwOiBub3JtYWw7ICI+PGZvbnQgY29sb3I9IiMwMDAwMDAiPlRhcmdldCBGaWxlPGJyIC8+PC9mb250PjwvZGl2PjwvZGl2PjwvZGl2PjwvZm9yZWlnbk9iamVjdD48dGV4dCB4PSI5MDciIHk9IjczIiBmaWxsPSIjMDAwMDAwIiBmb250LWZhbWlseT0iSGVsdmV0aWNhIiBmb250LXNpemU9IjEycHgiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlRhcmdldCBGaWxlJiN4YTs8L3RleHQ+PC9zd2l0Y2g+PC9nPjxwYXRoIGQ9Ik0gODMwIDMwLjU5IEwgODcyLjYzIDMwLjU5IiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDZlYWYiIHN0cm9rZS1taXRlcmxpbWl0PSIxMCIgcG9pbnRlci1ldmVudHM9InN0cm9rZSIvPjxwYXRoIGQ9Ik0gODc3Ljg4IDMwLjU5IEwgODcwLjg4IDM0LjA5IEwgODcyLjYzIDMwLjU5IEwgODcwLjg4IDI3LjA5IFoiIGZpbGw9IiMwMDZlYWYiIHN0cm9rZT0iIzAwNmVhZiIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBwb2ludGVyLWV2ZW50cz0iYWxsIi8+PHJlY3QgeD0iNjgyIiB5PSIwLjU5IiB3aWR0aD0iMTQ4IiBoZWlnaHQ9IjYwIiBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiMwMDZlYWYiIHBvaW50ZXItZXZlbnRzPSJhbGwiLz48cGF0aCBkPSJNIDY5NyAwLjU5IEwgNjk3IDYwLjU5IE0gODE1IDAuNTkgTCA4MTUgNjAuNTkiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwNmVhZiIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBwb2ludGVyLWV2ZW50cz0iYWxsIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTAuNSAtMC41KSI+PHN3aXRjaD48Zm9yZWlnbk9iamVjdCBzdHlsZT0ib3ZlcmZsb3c6IHZpc2libGU7IHRleHQtYWxpZ246IGxlZnQ7IiBwb2ludGVyLWV2ZW50cz0ibm9uZSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgcmVxdWlyZWRGZWF0dXJlcz0iaHR0cDovL3d3dy53My5vcmcvVFIvU1ZHMTEvZmVhdHVyZSNFeHRlbnNpYmlsaXR5Ij48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBzdHlsZT0iZGlzcGxheTogZmxleDsgYWxpZ24taXRlbXM6IHVuc2FmZSBjZW50ZXI7IGp1c3RpZnktY29udGVudDogdW5zYWZlIGNlbnRlcjsgd2lkdGg6IDExNnB4OyBoZWlnaHQ6IDFweDsgcGFkZGluZy10b3A6IDMxcHg7IG1hcmdpbi1sZWZ0OiA2OThweDsiPjxkaXYgc3R5bGU9ImJveC1zaXppbmc6IGJvcmRlci1ib3g7IGZvbnQtc2l6ZTogMDsgdGV4dC1hbGlnbjogY2VudGVyOyAiPjxkaXYgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsgZm9udC1zaXplOiAxMnB4OyBmb250LWZhbWlseTogSGVsdmV0aWNhOyBjb2xvcjogIzAwMDAwMDsgbGluZS1oZWlnaHQ6IDEuMjsgcG9pbnRlci1ldmVudHM6IGFsbDsgd2hpdGUtc3BhY2U6IG5vcm1hbDsgd29yZC13cmFwOiBub3JtYWw7ICI+PHNwYW4gc3R5bGU9ImNvbG9yOiByZ2IoMCAsIDAgLCAwKSI+Q29kZSBHZW5lcmF0aW9uPC9zcGFuPjwvZGl2PjwvZGl2PjwvZGl2PjwvZm9yZWlnbk9iamVjdD48dGV4dCB4PSI3NTYiIHk9IjM0IiBmaWxsPSIjMDAwMDAwIiBmb250LWZhbWlseT0iSGVsdmV0aWNhIiBmb250LXNpemU9IjEycHgiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkNvZGUgR2VuZXJhdGlvbjwvdGV4dD48L3N3aXRjaD48L2c+PHBhdGggZD0iTSA2MzAgMzAuMTggTCA2NzUuNjMgMzAuNTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwNmVhZiIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBwb2ludGVyLWV2ZW50cz0ic3Ryb2tlIi8+PHBhdGggZD0iTSA2ODAuODggMzAuNTggTCA2NzMuODUgMzQuMDMgTCA2NzUuNjMgMzAuNTQgTCA2NzMuOTEgMjcuMDMgWiIgZmlsbD0iIzAwNmVhZiIgc3Ryb2tlPSIjMDA2ZWFmIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHBvaW50ZXItZXZlbnRzPSJhbGwiLz48cmVjdCB4PSI4NzkiIHk9IjQuMTgiIHdpZHRoPSI0Ny41IiBoZWlnaHQ9IjUwIiBmaWxsPSJub25lIiBzdHJva2U9Im5vbmUiIHBvaW50ZXItZXZlbnRzPSJhbGwiLz48cGF0aCBkPSJNIDg3OS4xIDEwLjg5IEMgODc5IDcuNDcgODgxLjUxIDQuNTUgODg0Ljg2IDQuMTggTCA5MTYuNzMgNC4xOCBMIDkyNi41IDE0LjI0IEwgOTI2LjUgNDguMzEgQyA5MjYuMTYgNTEuNDEgOTIzLjcyIDUzLjg0IDkyMC42NyA1NC4xMiBMIDg4NC45OCA1NC4xOCBDIDg4MS43NSA1My45MyA4NzkuMiA1MS4yOSA4NzkuMDIgNDggWiBNIDg4My4wMiA0Ny43NCBDIDg4My4wNyA0OS4wNCA4ODQuMDggNTAuMDkgODg1LjM2IDUwLjE3IEwgOTIwLjExIDUwLjE3IEMgOTIxLjQgNTAuMTIgOTIyLjQ0IDQ5LjA2IDkyMi40OSA0Ny43NCBMIDkyMi40OSAxNi4zNSBMIDkxNC41NSAxNi4zNSBMIDkxNC41NSA4LjE3IEwgODg1LjM2IDguMTcgQyA4ODQuMDggOC4yMiA4ODMuMDUgOS4yNCA4ODIuOTcgMTAuNTQgWiBNIDg5MS4wNiAyNy44IEMgODkyLjQgMjcuNjcgODkzLjM5IDI2LjQ5IDg5My4zIDI1LjEzIEwgODkzLjMgMjAuMjMgQyA4OTMuNDUgMTguMjMgODk0Ljg5IDE2LjU2IDg5Ni44MiAxNi4xNCBDIDg5Ny42OCAxNiA4OTguNTQgMTUuOTMgODk5LjQxIDE1Ljk0IEwgODk5LjQxIDE4LjY3IEMgODk4LjEzIDE4LjY5IDg5Ny4wOCAxOS42OSA4OTYuOTcgMjAuOTkgTCA4OTYuOTcgMjUuNTMgQyA4OTYuOTQgMjcuMTMgODk1Ljk5IDI4LjU1IDg5NC41NCAyOS4xNyBDIDg5NS44NiAyOS43MiA4OTYuNzkgMzAuOTUgODk2Ljk3IDMyLjQgTCA4OTYuOTcgMzcuOSBDIDg5Ny4zMiAzOC45NiA4OTguMzEgMzkuNjUgODk5LjQxIDM5LjYyIEwgODk5LjQxIDQyLjM5IEMgODk4LjY4IDQyLjQgODk3Ljk1IDQyLjM1IDg5Ny4yMiA0Mi4yNCBDIDg5NS4zMiA0MiA4OTMuNzkgNDAuNTYgODkzLjQgMzguNjYgTCA4OTMuMzUgMzIuOSBDIDg5My4zIDMxLjYyIDg5Mi4zMiAzMC41OCA4OTEuMDYgMzAuNDggWiBNIDkwNC41MiAxNS45NCBDIDkwNS41MiAxNS45MiA5MDYuNTIgMTYuMDEgOTA3LjUgMTYuMTkgQyA5MDkuMzYgMTYuODEgOTEwLjYxIDE4LjU5IDkxMC41OCAyMC41OSBMIDkxMC41OCAyNS4zMyBDIDkxMC42IDI2LjYxIDkxMS41NiAyNy42OCA5MTIuODEgMjcuOCBMIDkxMi44MSAzMC40MyBDIDkxMS41MiAzMC41NiA5MTAuNTQgMzEuNjggOTEwLjU4IDMzIEwgOTEwLjU4IDM3LjkgQyA5MTAuNTMgMzkuNzYgOTA5LjM3IDQxLjQgOTA3LjY1IDQyLjA0IEMgOTA2LjYyIDQyLjI5IDkwNS41NyA0Mi40MiA5MDQuNTIgNDIuNDQgTCA5MDQuNTIgMzkuNjcgQyA5MDUuNTEgMzkuNjcgOTA2LjQxIDM5LjA4IDkwNi44IDM4LjE1IEwgOTA2Ljk1IDMyLjcgQyA5MDYuOTggMzEuMjIgOTA3LjggMjkuODggOTA5LjA5IDI5LjE5IEMgOTA3Ljc2IDI4LjU0IDkwNi45IDI3LjE5IDkwNi44NSAyNS42OCBMIDkwNi44NSAyMC4zMyBDIDkwNi41IDE5LjMxIDkwNS41NCAxOC42NCA5MDQuNDcgMTguNjYgWiIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjNjY2NjY2IiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHBvaW50ZXItZXZlbnRzPSJhbGwiLz48L2c+PHN3aXRjaD48ZyByZXF1aXJlZEZlYXR1cmVzPSJodHRwOi8vd3d3LnczLm9yZy9UUi9TVkcxMS9mZWF0dXJlI0V4dGVuc2liaWxpdHkiLz48YSB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLC01KSIgeGxpbms6aHJlZj0iaHR0cHM6Ly9kZXNrLmRyYXcuaW8vc3VwcG9ydC9zb2x1dGlvbnMvYXJ0aWNsZXMvMTYwMDAwNDI0ODciIHRhcmdldD0iX2JsYW5rIj48dGV4dCB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEwcHgiIHg9IjUwJSIgeT0iMTAwJSI+Vmlld2VyIGRvZXMgbm90IHN1cHBvcnQgZnVsbCBTVkcgMS4xPC90ZXh0PjwvYT48L3N3aXRjaD48L3N2Zz4=" style="max-width:100%;" /></p><p>&nbsp;</p><h3><a name="2-词法分析" class="md-header-anchor"></a><span>2. 词法分析</span></h3><p><strong><span>定义</span></strong><span>：将字符序列转换为单词（Token）序列的过程</span></p><p><span>从左至右一个字符一个字符的读入源程序，对构成源程序的字符流进行扫描，通过使用正则表达式匹配方法将源代码转换为等价的符号（Token） 流，生成相关符号列表 </span></p><p>&nbsp;</p><h4><a name="21-lr分析" class="md-header-anchor"></a><span>2.1 LR分析</span></h4><h4><a name="22-词法生成器" class="md-header-anchor"></a><span>2.2 词法生成器</span></h4><ul><li><strong><span>JavaCC</span></strong></li><li><strong><span>SableCC</span></strong></li><li><strong><span>Antlr4</span></strong></li><li><strong><span>Lex</span></strong></li></ul><h3><a name="3-语法分析" class="md-header-anchor"></a><span>3. 语法分析</span></h3><p><span>语法分析是在词法分析的基础上将单词序列组合成各类语法短语</span></p><h4><a name="31-基本概念" class="md-header-anchor"></a><span>3.1 基本概念</span></h4><h4><a name="32-抽象语法树" class="md-header-anchor"></a><span>3.2 抽象语法树</span></h4><h4><a name="33-语法生成器" class="md-header-anchor"></a><span>3.3 语法生成器</span></h4><ul><li><strong><span>JavaCC</span></strong></li><li><strong><span>SableCC</span></strong></li><li><strong><span>Antlr4</span></strong></li><li><strong><span>Yacc</span></strong></li></ul><h4><a name="34-开源工具分析" class="md-header-anchor"></a><span>3.4 开源工具分析</span></h4><ul><li><strong><span>JavaParser</span></strong></li><li><strong><span>JDT</span></strong></li><li><strong><span>PMD</span></strong></li><li><strong><span>SonarJava</span></strong></li><li><strong><span>FireLine</span></strong></li><li><strong><span>JTree</span></strong></li><li><strong><span>CheckerFramework</span></strong></li></ul><h3><a name="4-类型分析" class="md-header-anchor"></a><span>4. 类型分析</span></h3><h4><a name="41-基本概念" class="md-header-anchor"></a><span>4.1 基本概念</span></h4><h4><a name="42-类型解析" class="md-header-anchor"></a><span>4.2 类型解析</span></h4><h4><a name="43-类型推导" class="md-header-anchor"></a><span>4.3 类型推导</span></h4><h3><a name="5-中间代码" class="md-header-anchor"></a><span>5. 中间代码</span></h3><h4><a name="51-基本概念" class="md-header-anchor"></a><span>5.1 基本概念</span></h4><h4><a name="52-中间代码表示" class="md-header-anchor"></a><span>5.2 中间代码表示</span></h4><ul><li><span>抽象语法树</span></li><li><span>三地址码</span></li><li><span>静态单点赋值</span></li><li><span>fortify nst</span></li><li><span>java bytecode</span></li><li><span>android smali</span></li></ul><h3><a name="6-数据流分析" class="md-header-anchor"></a><span>6. 数据流分析</span></h3><h4><a name="61-基本概念" class="md-header-anchor"></a><span>6.1 基本概念</span></h4><h4><a name="62-数据流分析基础" class="md-header-anchor"></a><span>6.2 数据流分析基础</span></h4><h4><a name="63-数据流分析算法" class="md-header-anchor"></a><span>6.3 数据流分析算法</span></h4><ul><li><span>Constant Propagation Analysis </span></li><li><span>Fixed-Point Algorithms</span></li><li><span>Live Variables Analysis</span></li><li><span>Available Expressions Analysis </span></li><li><span>Very Busy Expressions Analysis</span></li><li><span>Reaching Definitions Analysis</span></li></ul><h4><a name="64-开源工具分析" class="md-header-anchor"></a><span>6.4 开源工具分析</span></h4><ul><li><span>SpotBugs</span></li><li><span>Find-sec-bugs</span></li><li><span>Soot</span></li><li><span>Wala</span></li><li><span>Spoon</span></li></ul><h3><a name="7-控制流分析" class="md-header-anchor"></a><span>7. 控制流分析</span></h3><h4><a name="71-基本概念" class="md-header-anchor"></a><span>7.1 基本概念</span></h4><h4><a name="72-控制流图" class="md-header-anchor"></a><span>7.2 控制流图</span></h4><h4><a name="73-调用图" class="md-header-anchor"></a><span>7.3 调用图</span></h4><ul><li><span>Reachability Analysis (RA)</span></li><li><span>Class Hierarchy Analysis(CHA)</span></li><li><span>Rapid Type Analysis(RTA)</span></li><li><span>Class Type Analysis(CTA)</span></li><li><span>Field Type Analysis(FTA)</span></li><li><span>Method Type Analysis(MTA)</span></li><li><span>Hybird Type Analysis(XTA)</span></li><li><span>X-CFA(e.g. 0-CFA,1-CFA)</span></li></ul><h3><a name="8-过程间分析" class="md-header-anchor"></a><span>8. 过程间分析</span></h3><h4><a name="81-基本概念" class="md-header-anchor"></a><span>8.1 基本概念</span></h4><h4><a name="82-信息流分析" class="md-header-anchor"></a><span>8.2 信息流分析</span></h4><h4><a name="83-图可达算法" class="md-header-anchor"></a><span>8.3 图可达算法</span></h4><h4><a name="84-ifds算法" class="md-header-anchor"></a><span>8.4 IFDS算法</span></h4><h4><a name="85-污点分析" class="md-header-anchor"></a><span>8.5 污点分析</span></h4><h4><a name="86-sparse-analysis" class="md-header-anchor"></a><span>8.6 Sparse Analysis</span></h4><h4><a name="87-type-state-analysis" class="md-header-anchor"></a><span>8.7 Type-state Analysis</span></h4><h3><a name="9-指针分析" class="md-header-anchor"></a><span>9. 指针分析</span></h3><h4><a name="91-基本概念" class="md-header-anchor"></a><span>9.1 基本概念</span></h4><h4><a name="92-基本分析" class="md-header-anchor"></a><span>9.2 基本分析 </span></h4><ul><li><span>别名分析 alias analysis</span></li><li><span>指针分析 pointer analysis</span></li><li><span>形态分析 shape analysis</span></li><li><span>逃匿分析 escape analysis</span></li></ul><h3><a name="10-抽象解释" class="md-header-anchor"></a><span>10. 抽象解释</span></h3><h4><a name="101-基本概念" class="md-header-anchor"></a><span>10.1 基本概念</span></h4><h3><a name="11-符号执行" class="md-header-anchor"></a><span>11. 符号执行</span></h3><h4><a name="111-基本概念" class="md-header-anchor"></a><span>11.1 基本概念</span></h4><h3><a name="12-总结" class="md-header-anchor"></a><span>12. 总结</span></h3><p>&nbsp;</p></div>
+</body>
+</html>
